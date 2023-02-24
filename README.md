@@ -6,6 +6,7 @@
 6. Ensure that the VSCode IDE box is selected
 7. Press continue, then continue, then open in VSCode
 8. In VSCode, select the *Extensions* tab on the left, search for C#, and install the Microsoft C# extension in the f21sm-lab container
+9. If a dialog box appears in the bottom right saying *"Required assets to build and debug are missing from 'f21sm-lab'. Add them?"* Select **YES**
 
 # Running the program
 1. Create a terminal window in VSCode from the navigation bar at the top of the screen
