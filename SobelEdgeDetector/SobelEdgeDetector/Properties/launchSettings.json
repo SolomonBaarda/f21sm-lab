@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "EdgeDetector": {
-      "commandName": "Project",
-      "commandLineArgs": "6 ./../../../../sunset.jpg ./../../../../test-image-output.png"
-    }
-  }
-}
