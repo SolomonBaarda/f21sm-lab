@@ -1,8 +1,5 @@
-﻿using System.Diagnostics;
-//using System;
-//using System.Threading;
-//using System.Threading.Tasks;
-//using System.Collections.Generic;
+﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace ParallelMap
 {
@@ -39,12 +36,23 @@ namespace ParallelMap
 
             for (int processor = 0; processor < Environment.ProcessorCount; processor++)
             {
+                int p = processor;
+                Thread t = new Thread(new ThreadStart(() =>
+                {
+                    for (int i = p; i < input.Length; i += Environment.ProcessorCount)
+                    {
+                        output[i] = function(input[i]);
+                    }
+                }));
 
+                threads.Add(t);
+                t.Start();
             }
 
-            for (int i = 0; i < input.Length; i += Environment.ProcessorCount)
+            // Wait for all threads to complete
+            foreach (Thread t in threads)
             {
-
+                t.Join();
             }
 
             return output;
@@ -83,5 +91,54 @@ namespace ParallelMap
 
 
         }
+
+
+
+
+
+
+
+
+
+
+        // LECTURE EXAMPLES
+
+
+        void a()
+        {
+
+            var collection = new List<int>();
+
+            void Process(int a)
+            {
+
+            }
+
+            // Sequential version
+            foreach (var item in collection)
+            {
+                Process(item);
+            }
+
+            // Parallel equivalent
+            Parallel.ForEach(collection, item => Process(item));
+
+
+            // Sequential version
+            for (int i = 0; i < collection.Count; i++)
+            {
+                Process(collection[i]);
+            }
+
+            // Parallel equivalent
+            Parallel.For(0, collection.Count, (i) =>
+            {
+                Process(collection[i]);
+            });
+
+
+        }
+
+
     }
 }

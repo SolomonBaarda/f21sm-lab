@@ -95,9 +95,9 @@ namespace ParallelMap
 
             // Threads #3
             stopwatch.Restart();
-            //result = ParallelThreads3(input);
+            result = ParallelThreadsPool(input);
             stopwatch.Stop();
-            Console.WriteLine($"Threads #3 completed in {stopwatch.ElapsedMilliseconds} ms with a result of {result}");
+            Console.WriteLine($"Thread pool completed in {stopwatch.ElapsedMilliseconds} ms with a result of {result}");
 
 
 
@@ -193,21 +193,19 @@ namespace ParallelMap
             return sum;
         }
 
-        public const int NumberOfProcessors = 6;
-
         public static int ParallelThreads2(int[] input)
         {
             int sum = 0;
             List<Thread> threads = new List<Thread>();
 
-            for (int processor = 0; processor < NumberOfProcessors; processor++)
+            for (int processor = 0; processor < Environment.ProcessorCount; processor++)
             {
                 int processorCopy = processor;
 
                 Thread t = new Thread(new ThreadStart(() =>
                 {
                     int localSum = 0;
-                    for (int index = processorCopy; index < input.Length; index += NumberOfProcessors)
+                    for (int index = processorCopy; index < input.Length; index += Environment.ProcessorCount)
                     {
                         int result = CountPrimes(input[index]);
                         localSum += result;
@@ -228,30 +226,34 @@ namespace ParallelMap
             return sum;
         }
 
-        public static int ParallelThreads3(int[] input)
+        public static int ParallelThreadsPool(int[] input)
         {
             int sum = 0;
-            List<Thread> threads = new List<Thread>();
 
-            for (int processor = 0; processor < NumberOfProcessors; processor++)
+            // Keep track of the number of threads remaining to complete.
+            int remaining = Environment.ProcessorCount;
+            using (ManualResetEvent mre = new ManualResetEvent(false))
             {
-                int numElementsToProcess = (input.Length / NumberOfProcessors) + 1;
-
-                Thread t = new Thread(new ThreadStart(() =>
+                // Create each of the threads.
+                for (int p = 0; p < Environment.ProcessorCount; p++)
                 {
-                    for (int index = numElementsToProcess * processor; index < numElementsToProcess && index < input.Length; index++)
-                    {
-                        int result = CountPrimes(input[index]);
-                        Interlocked.Add(ref sum, result);
-                    }
-                }));
-                threads.Add(t);
-                t.Start();
-            }
+                    int processorCopy = p;
 
-            foreach (Thread t in threads)
-            {
-                t.Join();
+                    ThreadPool.QueueUserWorkItem(delegate
+                    {
+                        int localSum = 0;
+                        for (int index = processorCopy; index < input.Length; index += Environment.ProcessorCount)
+                        {
+                            int result = CountPrimes(input[index]);
+                            localSum += result;
+                        }
+
+                        Interlocked.Add(ref sum, localSum);
+                        if (Interlocked.Decrement(ref remaining) == 0) mre.Set();
+                    });
+                }
+                // Wait for all threads to complete.
+                mre.WaitOne();
             }
 
             return sum;
