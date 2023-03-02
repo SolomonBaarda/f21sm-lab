@@ -6,7 +6,7 @@
 2. Install [VSCode](https://code.visualstudio.com/download) (or any other editor if you know how to use it with Docker)
 3. From Docker Desktop, select *Dev Environments* and press *Create new*, then *Get started*
 5. Add the git repo `https://github.com/SolomonBaarda/f21sm-lab.git`
-6. Ensure that the VSCode IDE box is selected
+6. Ensure that the VSCode IDE box is selected. If you get a prompt to install the Visual Studio Code Remote Containers Extension, follow the instructions provided (you'll need to press retry once you have it installed).
 7. Press continue, then continue, then open in VSCode
 8. In VSCode, select the *Extensions* tab on the left, search for C#, and install the Microsoft C# extension in the f21sm-lab container
 9. If a dialog box appears in the bottom right saying *"Required assets to build and debug are missing from 'f21sm-lab'. Add them?"* Select **YES**
