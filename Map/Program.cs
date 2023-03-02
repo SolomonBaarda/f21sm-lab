@@ -111,8 +111,10 @@ namespace ParallelMap
 
             void Process(int a)
             {
-
             }
+
+
+            // Parallel for
 
             // Sequential version
             foreach (var item in collection)
@@ -121,7 +123,10 @@ namespace ParallelMap
             }
 
             // Parallel equivalent
-            Parallel.ForEach(collection, item => Process(item));
+            Parallel.ForEach(collection, item =>
+            {
+                Process(item);
+            });
 
 
             // Sequential version
@@ -135,6 +140,107 @@ namespace ParallelMap
             {
                 Process(collection[i]);
             });
+
+
+            // PLINQ
+
+            // Sequential version
+            foreach (var item in collection)
+            {
+                Process(item);
+            }
+
+            // LINQ
+            collection.ForEach(item => Process(item));
+
+            // P LINQ
+            collection.AsParallel().ForAll(item => Process(item));
+
+
+            // Map
+            collection.AsParallel().Select(x => x + 1);
+
+            // Filter
+            collection.AsParallel().Where(x => x > 10);
+
+            // Reduce
+            collection.AsParallel().Aggregate((x, y) => x + y);
+
+
+
+
+            Thread t = new Thread(() =>
+            {
+                // Code to run in parallel
+            });
+
+            t.Start();
+
+            t.Join();
+
+
+
+
+            {
+                List<Thread> threads = new List<Thread>();
+                int workPerProcess = collection.Count() / Environment.ProcessorCount;
+
+                for (int process = 0; process < Environment.ProcessorCount; process++)
+                {
+                    // Calculate start and end indexes
+                    int start = process * workPerProcess;
+                    int end = (process == Environment.ProcessorCount - 1) ? collection.Count() : start + workPerProcess;
+
+                    // Assign work to the thread
+                    threads.Add(new Thread(() =>
+                    {
+                        for (int i = start; i < end; i++)
+                        {
+                            Process(collection[i]);
+                        }
+                    }));
+                }
+
+                foreach (var thread in threads) thread.Start();
+                foreach (var thread in threads) thread.Join();
+            }
+
+
+
+
+            {
+
+                int workPerProcess = collection.Count() / Environment.ProcessorCount;
+                // Keep track of the number of threads remaining to complete
+                int remaining = Environment.ProcessorCount;
+
+                using (ManualResetEvent mre = new ManualResetEvent(false))
+                {
+                    for (int process = 0; process < Environment.ProcessorCount; process++)
+                    {
+                        // Calculate start and end indexes
+                        int start = process * workPerProcess;
+                        int end = (process == Environment.ProcessorCount - 1) ? collection.Count() : start + workPerProcess;
+
+                        // Assign work to the pool
+                        ThreadPool.QueueUserWorkItem(delegate
+                        {
+                            for (int i = start; i < end; i++)
+                            {
+                                Process(collection[i]);
+                            }
+
+                            if (Interlocked.Decrement(ref remaining) == 0) mre.Set();
+                        });
+                    }
+                    // Wait for all threads to complete
+                    mre.WaitOne();
+                }
+
+            }
+
+
+
 
 
         }
