@@ -1,5 +1,5 @@
 # Installation instructions
-1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop) (or any other verion of Docker if you know how to use it)
+1. Install [Docker Desktop](https://docs.docker.com/get-docker/) (or any other verion of Docker if you know how to use it)
 
     If you are on Windows, you will need to enable virtualisation in your BIOS and update WSL (Windows Subsystem for Linux) using `wsl --update`
 
