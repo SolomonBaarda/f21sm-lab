@@ -15,4 +15,4 @@
 # Running the program
 1. Create a terminal window in VSCode from the navigation bar at the top of the screen
 2. Navigate to the `SobelEdgeDetector` directory
-3. Run the project using `dotenv run <cores> <input file path> <output file path>` e.g. `dotenv run 4 images/sunset.jpg images/output.png`
+3. Run the project using `dotnet run <cores> <input file path> <output file path>` e.g. `dotnet run 4 images/sunset.jpg images/output.png`
