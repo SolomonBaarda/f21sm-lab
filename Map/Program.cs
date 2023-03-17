@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 
-namespace ParallelMap
+namespace CountingPrimes
 {
     class Map
     {
@@ -113,6 +113,13 @@ namespace ParallelMap
             {
             }
 
+
+            // Delightfully parallel
+
+            foreach (var item in collection)
+            {
+                Process(item);
+            }
 
             // Parallel for
 
@@ -240,6 +247,38 @@ namespace ParallelMap
             }
 
 
+            {
+
+                int workPerProcess = collection.Count() / Environment.ProcessorCount;
+                // Keep track of the number of threads still waiting to complete
+                int remaining = Environment.ProcessorCount;
+                int nextWorkIndex = 0;
+
+                using (ManualResetEvent mre = new ManualResetEvent(false))
+                {
+                    // Create each of the work items.
+                    for (int process = 0; process < Environment.ProcessorCount; process++)
+                    {
+                        ThreadPool.QueueUserWorkItem(delegate
+                        {
+                            int i;
+                            // Take the next piece of available work
+                            while ((i = Interlocked.Increment(ref nextWorkIndex) - 1) < collection.Count())
+                            {
+                                Process(collection[i]);
+                            }
+
+                            if (Interlocked.Decrement(ref remaining) == 0)
+                                mre.Set();
+                        });
+                    }
+
+                    // Wait for all threads to complete.
+                    mre.WaitOne();
+                }
+
+
+            }
 
 
 
