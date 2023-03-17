@@ -1,11 +1,35 @@
 # Sobel Edge Detection algorithm
-Image processing algorithm used for detecting the edges of shapes within an image
-Image processing algorithms are generally delightfully parallel – normally for each stage in the algorithm, each pixel can be processed independently 
-The convolve method is the core function of this example – it takes a kernel of multiplier values, and for each pixel, it multiplies the nearby pixels by the kernel, sums the values, and sets the output pixel to that sum
 
+The Sobel Edge Detection algorithm is an image processing technique used for identifying the edges of objects within an image. Each pixel in the image can be processed independently, making parallelising this algorithm delightful. The purpose of this lab exercise is to give the students time to gain first hand experience in using the parallel techniques discussed in the lecture.
 
 # Installation instructions
-1. Install [Docker Desktop](https://docs.docker.com/get-docker/) (or any other verion of Docker if you know how to use it)
+
+There are two ways to install C# to run the project:
+* Download the dotnet development runtime 
+* Download the Docker development environment which contains the dotnet runtime
+
+You will also need an IDE installed, I recommend [VSCode](https://code.visualstudio.com/download).
+
+## Option 1: Manual installation
+
+1. Download and install **version 7** of the [dotnet SDK](https://dotnet.microsoft.com/en-us/download)
+2. Clone this repository to disk using `git clone https://github.com/SolomonBaarda/f21sm-lab.git`
+3. Open the `f21sm-lab` folder in your IDE of choice
+    
+    If you are using VSCode, select the *Extensions* tab on the left, search for C#, and install the Microsoft C# extension
+
+    If a dialog box appears in the bottom right saying *"Required assets to build and debug are missing from 'f21sm-lab'. Add them?"* Select **YES**
+
+4. Navigate to the `SobelEdgeDetector` directory
+
+5. Run `dotnet restore`
+
+
+## Option 2: Docker installation
+
+I have provided installation instructions for Docker, if you wish to use it. THIS IS OPTIONAL
+
+1. Install [Docker Desktop](https://docs.docker.com/get-docker/) (**or any other version of Docker if you know how to use it**)
 
     If you are on Windows, you will need to enable virtualisation in your BIOS and update WSL (Windows Subsystem for Linux) using `wsl --update`
 
@@ -19,13 +43,16 @@ The convolve method is the core function of this example – it takes a kernel o
 10. If this fails, then run `dotnet restore` from a command shell
 
 # Running the program
-1. Create a terminal window in VSCode from the navigation bar at the top of the screen
+
+1. Create a terminal window in your IDE of choice 
 2. Navigate to the `SobelEdgeDetector` directory
-3. Run the program using `dotnet run <task number> <input file path> <output file path>` 
+3. Run the program using `dotnet run <task number> <input file path> <output file path> <number of cores>` 
    
-   e.g. `dotnet run 1 images/sunset.jpg images/output.png`
+   e.g. To run task 1 on a four core machine, use: `dotnet run 1 images/sunset.jpg images/output.png 4`
 
 # Exercises
+
+
 
 ## Task 1
 
@@ -76,7 +103,3 @@ The convolve method is the core function of this example – it takes a kernel o
 1. Implement lab task six within the `PerformEdgeProcessing` method. You should modify the program so that it now outputs the original image, with the detected edges on top. You can optionally colour the edges to make them stand out. 
 
     Bonus points if you can implement this using a parallel technique. 
-
-## Task 7 (optional and difficult)
-
-1. Implement lab task seven within the `PerformEdgeProcessing` method. You should modify the edge processing algorithm to include an extra step which makes the detected edges thinner. 

@@ -78,9 +78,6 @@ namespace SobelEdgeDetector
                 );
             }
 
-            // Edge thinning
-            // Task 7
-
             // Task 6
             // Output the original image with the edges on top
             // Optionally colour the edges
