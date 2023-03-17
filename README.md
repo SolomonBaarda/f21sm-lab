@@ -35,12 +35,15 @@ The convolve method is the core function of this example – it takes a kernel o
 
 ## Task 2
 
-1. Implement lab task two using the `Parallel.For` construct.
+1. Implement lab task two within the `Convolve` method, using the `Parallel.For` construct.
+
+    Pass in `new ParallelOptions { MaxDegreeOfParallelism = numberOfThreads }` as a parameter before the lambda function to ensure that the maximum degree of parallelism is set.
+
 2. Measure the runtime of your parallel solution and calculate the speedup compared to the sequential implementation
 
 ## Task 3
 
-1. Implement lab task three using the `PLINQ Select` method, an equivalent of the `map` higher order function
+1. Implement lab task three within the `Convolve` method, using the `PLINQ Select` method, an equivalent of the `map` higher order function
 
     Note that you can use the syntax `(element, index) => { your code goes here }` within `Select` to get the index of the current iteration. Using the index, you can calculate the `x` and `y` position of the current pixel using `x = index % width` and `y = index / width`.
 
@@ -52,7 +55,7 @@ The convolve method is the core function of this example – it takes a kernel o
 
 ## Task 4
 
-1. Implement lab task four using threads and a chunking approach. Skeleton code has been included.
+1. Implement lab task four within the `Convolve` method, using a thread pool and a chunking approach. Skeleton code has been included.
    
    You will likely need to calculate the `x` and `y` position of the current pixel using `x = index % width` and `y = index / width`.
 
@@ -62,9 +65,18 @@ The convolve method is the core function of this example – it takes a kernel o
 
 ## Task 5
 
-1. 
+1. Implement lab task five within the `Convolve` method, using a thread pool and fully dynamic partitioning. Refer to the examples within the `CountingPrimes` project.
 
-## Task 6
-1. 
+2. Measure the runtime of your new parallel solution and calculate the speedup compared to the sequential implementation. 
 
+    How does the performance of the fully dynamic partitioning approach compare to the chunking approach? Do we see much difference in performance?
 
+## Task 6 (optional)
+
+1. Implement lab task six within the `PerformEdgeProcessing` method. You should modify the program so that it now outputs the original image, with the detected edges on top. You can optionally colour the edges to make them stand out. 
+
+    Bonus points if you can implement this using a parallel technique. 
+
+## Task 7 (optional and difficult)
+
+1. Implement lab task seven within the `PerformEdgeProcessing` method. You should modify the edge processing algorithm to include an extra step which makes the detected edges thinner. 

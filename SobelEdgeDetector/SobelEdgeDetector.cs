@@ -38,21 +38,21 @@ namespace SobelEdgeDetector
 
         public enum LabTask
         {
-            Task1,
-            Task2,
-            Task3,
-            Task4,
-            Task5
+            Task1 = 1,
+            Task2 = 2,
+            Task3 = 3,
+            Task4 = 4,
+            Task5 = 5
         }
 
-        public static Image<Rgba32> PerformEdgeProcessing(in Image<Rgba32> image, LabTask labTask)
+        public static Image<Rgba32> PerformEdgeProcessing(in Image<Rgba32> image, LabTask labTask, int numberOfThreads)
         {
             // Copy raw pixel data into an array
             Rgba32[] pixelData = new Rgba32[image.Width * image.Height];
             image.CopyPixelDataTo(pixelData);
 
             // Perform noise reduction
-            Rgba32[] blurredPixelData = Convolve(pixelData, image.Width, image.Height, GaussianKernel5x5, labTask);
+            Rgba32[] blurredPixelData = Convolve(pixelData, image.Width, image.Height, GaussianKernel5x5, labTask, numberOfThreads);
 
             // Convert to greyscale
             Rgba32[] greyscalePixelData = new Rgba32[pixelData.Length];
@@ -64,8 +64,8 @@ namespace SobelEdgeDetector
             }
 
             // Gradient calculation
-            Rgba32[] sobelPixelDataHorizontal = Convolve(greyscalePixelData, image.Width, image.Height, SobelKernelHorizontal5x5, labTask);
-            Rgba32[] sobelPixelDataVertical = Convolve(greyscalePixelData, image.Width, image.Height, SobelKernelVertical5x5, labTask);
+            Rgba32[] sobelPixelDataHorizontal = Convolve(greyscalePixelData, image.Width, image.Height, SobelKernelHorizontal5x5, labTask, numberOfThreads);
+            Rgba32[] sobelPixelDataVertical = Convolve(greyscalePixelData, image.Width, image.Height, SobelKernelVertical5x5, labTask, numberOfThreads);
 
             Rgba32[] sobelMagnitude = new Rgba32[pixelData.Length];
             for (int i = 0; i < pixelData.Length; i++)
@@ -79,9 +79,9 @@ namespace SobelEdgeDetector
             }
 
             // Edge thinning
-            // Task 6
-
             // Task 7
+
+            // Task 6
             // Output the original image with the edges on top
             // Optionally colour the edges
 
@@ -89,10 +89,9 @@ namespace SobelEdgeDetector
             return Image<Rgba32>.LoadPixelData(sobelMagnitude, image.Width, image.Height);
         }
 
-        private static Rgba32[] Convolve(Rgba32[] pixelData, int width, int height, float[,] kernel, LabTask labTask)
+        private static Rgba32[] Convolve(Rgba32[] pixelData, int width, int height, float[,] kernel, LabTask labTask, int numberOfThreads)
         {
             Rgba32[] outputPixelData = new Rgba32[width * height];
-            int numberOfProcessors = Environment.ProcessorCount;
 
             switch (labTask)
             {
@@ -114,7 +113,7 @@ namespace SobelEdgeDetector
 
                     // Parallel for implementation
 
-                    Parallel.For(0, height, y =>
+                    Parallel.For(0, height, new ParallelOptions { MaxDegreeOfParallelism = numberOfThreads }, y =>
                     {
                         for (int x = 0; x < width; x++)
                         {
@@ -124,6 +123,10 @@ namespace SobelEdgeDetector
                     });
 
                     // Your code goes here:
+
+                    // Pass in: new ParallelOptions { MaxDegreeOfParallelism = numberOfThreads }
+                    // As a parameter before the lambda function 
+
                     //throw new NotImplementedException("Please complete task 2");
 
                     break;
@@ -132,8 +135,15 @@ namespace SobelEdgeDetector
 
                     // Parallel LINQ implementation
 
+                    // Your code goes here:
+
+                    // Use: WithDegreeOfParallelism(numberOfThreads) to set the max number of threads
+
+                    //throw new NotImplementedException("Please complete task 3");
+
                     outputPixelData = pixelData.AsParallel()
                     .AsOrdered()
+                    .WithDegreeOfParallelism(numberOfThreads)
                     .Select((element, index) =>
                     {
                         int x = index % width;
@@ -142,43 +152,45 @@ namespace SobelEdgeDetector
                     })
                     .ToArray();
 
-                    // Your code goes here:
-                    //throw new NotImplementedException("Please complete task 3");
-
                     break;
 
                 case LabTask.Task4:
 
 
-                    // Chunked threads approach
+                    // Chunked thread pool approach
 
-                    List<Thread> threads = new List<Thread>();
-                    int workPerProcess = pixelData.Length / numberOfProcessors;
+                    int workPerProcess = pixelData.Length / numberOfThreads;
+                    // Keep track of the number of threads remaining to complete
+                    int remaining = numberOfThreads;
 
-                    for (int process = 0; process < numberOfProcessors; process++)
+                    using (ManualResetEvent mre = new ManualResetEvent(false))
                     {
-                        // Calculate start and end indexes
-                        int startIndex = process * workPerProcess;
-                        int endIndex = (process == numberOfProcessors - 1) ? pixelData.Length : startIndex + workPerProcess;
-
-                        // Assign work to the thread
-                        threads.Add(new Thread(() =>
+                        for (int process = 0; process < numberOfThreads; process++)
                         {
-                            // Your code goes here:
+                            // Calculate start and end indexes
+                            int startIndex = process * workPerProcess;
+                            int endIndex = (process == numberOfThreads - 1) ? pixelData.Length : startIndex + workPerProcess;
 
-                            throw new NotImplementedException("Please complete task 4");
-
-                            for (int index = startIndex; index < endIndex; index++)
+                            // Assign work to the pool
+                            ThreadPool.QueueUserWorkItem(delegate
                             {
-                                int x = index % width;
-                                int y = index / width;
-                                outputPixelData[index] = ApplyKernelToPixel(pixelData, width, height, x, y, kernel);
-                            }
-                        }));
-                    }
+                                // Your code goes here:
 
-                    foreach (var thread in threads) thread.Start();
-                    foreach (var thread in threads) thread.Join();
+                                for (int index = startIndex; index < endIndex; index++)
+                                {
+                                    int x = index % width;
+                                    int y = index / width;
+                                    outputPixelData[index] = ApplyKernelToPixel(pixelData, width, height, x, y, kernel);
+                                }
+
+
+                                if (Interlocked.Decrement(ref remaining) == 0) mre.Set();
+                            });
+                        }
+
+                        // Wait for all threads to complete
+                        mre.WaitOne();
+                    }
 
                     break;
 
