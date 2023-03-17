@@ -36,27 +36,36 @@ namespace SobelEdgeDetector
                 { -2, -2, -4, -2, -2 },
             };
 
-        public static Image<Rgba32> PerformEdgeProcessing(in Image<Rgba32> image)
+        public enum LabTask
+        {
+            Task1,
+            Task2,
+            Task3,
+            Task4,
+            Task5
+        }
+
+        public static Image<Rgba32> PerformEdgeProcessing(in Image<Rgba32> image, LabTask labTask)
         {
             // Copy raw pixel data into an array
             Rgba32[] pixelData = new Rgba32[image.Width * image.Height];
             image.CopyPixelDataTo(pixelData);
 
             // Perform noise reduction
-            Rgba32[] blurredPixelData = Convolve(pixelData, image.Width, image.Height, GaussianKernel5x5);
+            Rgba32[] blurredPixelData = Convolve(pixelData, image.Width, image.Height, GaussianKernel5x5, labTask);
 
             // Convert to greyscale
             Rgba32[] greyscalePixelData = new Rgba32[pixelData.Length];
             for (int i = 0; i < pixelData.Length; i++)
             {
-                // Calculate greyscale value using weighted luminosity method
+                // Calculate greyscale using weighted luminosity method
                 float average = ((0.3f * blurredPixelData[i].R) + (0.59f * blurredPixelData[i].G) + (0.11f * blurredPixelData[i].B)) / 256.0f;
                 greyscalePixelData[i] = new Rgba32(average, average, average);
             }
 
             // Gradient calculation
-            Rgba32[] sobelPixelDataHorizontal = Convolve(greyscalePixelData, image.Width, image.Height, SobelKernelHorizontal5x5);
-            Rgba32[] sobelPixelDataVertical = Convolve(greyscalePixelData, image.Width, image.Height, SobelKernelVertical5x5);
+            Rgba32[] sobelPixelDataHorizontal = Convolve(greyscalePixelData, image.Width, image.Height, SobelKernelHorizontal5x5, labTask);
+            Rgba32[] sobelPixelDataVertical = Convolve(greyscalePixelData, image.Width, image.Height, SobelKernelVertical5x5, labTask);
 
             Rgba32[] sobelMagnitude = new Rgba32[pixelData.Length];
             for (int i = 0; i < pixelData.Length; i++)
@@ -69,38 +78,122 @@ namespace SobelEdgeDetector
                 );
             }
 
+            // Edge thinning
+            // Task 6
+
+            // Task 7
+            // Output the original image with the edges on top
+            // Optionally colour the edges
+
             // Return the processed image
             return Image<Rgba32>.LoadPixelData(sobelMagnitude, image.Width, image.Height);
         }
 
-        private static Rgba32[] Convolve(Rgba32[] pixelData, int width, int height, float[,] kernel)
+        private static Rgba32[] Convolve(Rgba32[] pixelData, int width, int height, float[,] kernel, LabTask labTask)
         {
             Rgba32[] outputPixelData = new Rgba32[width * height];
+            int numberOfProcessors = Environment.ProcessorCount;
 
-#if PARALLEL_FOR
-
-            Parallel.For(0, height, y =>
+            switch (labTask)
             {
-                for (int x = 0; x < width; x++)
-                {
-                    int index = (y * width) + x;
-                    outputPixelData[index] = ApplyKernelToPixel(pixelData, width, height, x, y, kernel);
-                }
-            });
+                case LabTask.Task1:
 
-#else
+                    // Sequential implementation
+                    for (int y = 0; y < height; y++)
+                    {
+                        for (int x = 0; x < width; x++)
+                        {
+                            int index = (y * width) + x;
+                            outputPixelData[index] = ApplyKernelToPixel(pixelData, width, height, x, y, kernel);
+                        }
+                    }
 
-            for (int y = 0; y < height; y++)
-            {
-                for (int x = 0; x < width; x++)
-                {
-                    int index = (y * width) + x;
-                    outputPixelData[index] = ApplyKernelToPixel(pixelData, width, height, x, y, kernel);
-                }
+                    break;
+
+                case LabTask.Task2:
+
+                    // Parallel for implementation
+
+                    Parallel.For(0, height, y =>
+                    {
+                        for (int x = 0; x < width; x++)
+                        {
+                            int index = (y * width) + x;
+                            outputPixelData[index] = ApplyKernelToPixel(pixelData, width, height, x, y, kernel);
+                        }
+                    });
+
+                    // Your code goes here:
+                    //throw new NotImplementedException("Please complete task 2");
+
+                    break;
+
+                case LabTask.Task3:
+
+                    // Parallel LINQ implementation
+
+                    outputPixelData = pixelData.AsParallel()
+                    .AsOrdered()
+                    .Select((element, index) =>
+                    {
+                        int x = index % width;
+                        int y = index / width;
+                        return ApplyKernelToPixel(pixelData, width, height, x, y, kernel);
+                    })
+                    .ToArray();
+
+                    // Your code goes here:
+                    //throw new NotImplementedException("Please complete task 3");
+
+                    break;
+
+                case LabTask.Task4:
+
+
+                    // Chunked threads approach
+
+                    List<Thread> threads = new List<Thread>();
+                    int workPerProcess = pixelData.Length / numberOfProcessors;
+
+                    for (int process = 0; process < numberOfProcessors; process++)
+                    {
+                        // Calculate start and end indexes
+                        int startIndex = process * workPerProcess;
+                        int endIndex = (process == numberOfProcessors - 1) ? pixelData.Length : startIndex + workPerProcess;
+
+                        // Assign work to the thread
+                        threads.Add(new Thread(() =>
+                        {
+                            // Your code goes here:
+
+                            throw new NotImplementedException("Please complete task 4");
+
+                            for (int index = startIndex; index < endIndex; index++)
+                            {
+                                int x = index % width;
+                                int y = index / width;
+                                outputPixelData[index] = ApplyKernelToPixel(pixelData, width, height, x, y, kernel);
+                            }
+                        }));
+                    }
+
+                    foreach (var thread in threads) thread.Start();
+                    foreach (var thread in threads) thread.Join();
+
+                    break;
+
+                case LabTask.Task5:
+
+                    // Chunked threads using fully dynamic partitioning
+
+                    // Your code goes here:
+                    // Look at the CountingPrimes project as a starting point
+                    throw new NotImplementedException("Please complete task 5");
+
+                    break;
             }
 
-#endif
-
+            // Return the new pixel data
             return outputPixelData;
         }
 
@@ -113,7 +206,7 @@ namespace SobelEdgeDetector
                 for (int kernelX = 0; kernelX < kernel.GetLength(1); kernelX++)
                 {
                     // Calculate the pixel position to sample
-                    // If the sample point is outisde the image, just sample the closest pixel along the edge
+                    // If the sample point is outside the image, just sample the closest pixel along the edge
                     int sampleY = Math.Clamp(pixelY + kernelY - (kernel.GetLength(0) / 2), 0, height - 1);
                     int sampleX = Math.Clamp(pixelX + kernelX - (kernel.GetLength(1) / 2), 0, width - 1);
 
@@ -125,6 +218,7 @@ namespace SobelEdgeDetector
                 }
             }
 
+            // Rgba32 takes colour input in range 0-1
             return new Rgba32(sumR / 256.0f, sumG / 256.0f, sumB / 256.0f);
         }
 

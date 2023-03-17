@@ -1,3 +1,9 @@
+# Sobel Edge Detection algorithm
+Image processing algorithm used for detecting the edges of shapes within an image
+Image processing algorithms are generally delightfully parallel – normally for each stage in the algorithm, each pixel can be processed independently 
+The convolve method is the core function of this example – it takes a kernel of multiplier values, and for each pixel, it multiplies the nearby pixels by the kernel, sums the values, and sets the output pixel to that sum
+
+
 # Installation instructions
 1. Install [Docker Desktop](https://docs.docker.com/get-docker/) (or any other verion of Docker if you know how to use it)
 
@@ -15,8 +21,50 @@
 # Running the program
 1. Create a terminal window in VSCode from the navigation bar at the top of the screen
 2. Navigate to the `SobelEdgeDetector` directory
-3. Run the project using `dotnet run <cores> <input file path> <output file path>` e.g. `dotnet run 4 images/sunset.jpg images/output.png`
-
+3. Run the program using `dotnet run <task number> <input file path> <output file path>` 
+   
+   e.g. `dotnet run 1 images/sunset.jpg images/output.png`
 
 # Exercises
+
+## Task 1
+
+1. Run the sequential implementation on some images of your choice. Some sample images have been included in the `SobelEdgeDetector/images` directory, though feel free to use other images if you would like
+2. Choose an image that you would like to use for benchmarking performance 
+3. Measure the runtime of the sequential implementation 
+
+## Task 2
+
+1. Implement lab task two using the `Parallel.For` construct.
+2. Measure the runtime of your parallel solution and calculate the speedup compared to the sequential implementation
+
+## Task 3
+
+1. Implement lab task three using the `PLINQ Select` method, an equivalent of the `map` higher order function
+
+    Note that you can use the syntax `(element, index) => { your code goes here }` within `Select` to get the index of the current iteration. Using the index, you can calculate the `x` and `y` position of the current pixel using `x = index % width` and `y = index / width`.
+
+    The `PLINQ` documentation can be found [here](https://learn.microsoft.com/en-us/dotnet/standard/parallel-programming/introduction-to-plinq). You might find `ToArray` and `AsOrdered` to be useful for your implementation.
+
+2. Measure the runtime of your new parallel solution and calculate the speedup compared to the sequential implementation. 
+
+    How does the performance of `PLINQ` compare to `Parallel.For`?
+
+## Task 4
+
+1. Implement lab task four using threads and a chunking approach. Skeleton code has been included.
+   
+   You will likely need to calculate the `x` and `y` position of the current pixel using `x = index % width` and `y = index / width`.
+
+2. Measure the runtime of your new parallel solution and calculate the speedup compared to the sequential implementation. 
+
+    How does the performance of chunking threads compare to `Parallel.For` and `PLINQ`?
+
+## Task 5
+
+1. 
+
+## Task 6
+1. 
+
 
