@@ -52,7 +52,7 @@ I have provided installation instructions for Docker, if you wish to use it. THI
 
 # Exercises
 
-
+Please refer to the examples in `CountingPrimes/Program.cs` for help with the C# syntax. These are the examples that we discussed in the lecture. 
 
 ## Task 1
 
