@@ -109,6 +109,11 @@ namespace CountingPrimes
 
             var collection = new List<int>();
 
+            var a = new List<int>();
+            var b = new List<int>();
+            var c = new List<int>();
+
+
             void Process(int a)
             {
             }
@@ -121,7 +126,17 @@ namespace CountingPrimes
                 Process(item);
             }
 
+
+            for (int i = 0; i < a.Count(); i++)
+            {
+                c[i] = a[i] + b[i];
+            }
+
+
+
+
             // Parallel for
+
 
             // Sequential version
             foreach (var item in collection)
@@ -149,6 +164,7 @@ namespace CountingPrimes
             });
 
 
+
             // PLINQ
 
             // Sequential version
@@ -161,17 +177,22 @@ namespace CountingPrimes
             collection.ForEach(item => Process(item));
 
             // P LINQ
-            collection.AsParallel().ForAll(item => Process(item));
+            collection.AsParallel()
+                .ForAll(item => Process(item));
+
 
 
             // Map
-            collection.AsParallel().Select(x => x + 1);
+            collection.AsParallel()
+                .Select(x => x + 1);
 
             // Filter
-            collection.AsParallel().Where(x => x > 10);
+            collection.AsParallel()
+                .Where(x => x > 10);
 
             // Reduce
-            collection.AsParallel().Aggregate((x, y) => x + y);
+            collection.AsParallel()
+                .Aggregate((x, y) => x + y);
 
 
 
