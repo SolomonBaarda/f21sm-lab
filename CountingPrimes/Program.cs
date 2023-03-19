@@ -34,18 +34,18 @@ namespace CountingPrimes
 
         static void Main(string[] args)
         {
-            int[] input = new int[100];
+            int[] input = new int[150];
 
             Random r = new Random(0);
 
             // Construct data
             for (int i = 0; i < input.Length; i++)
             {
-                input[i] = 500 * (i + 1);
+                input[i] = 100 * (i + 1);
             }
 
             // Array will contain:
-            // [500, 1000, 1500, ... ]
+            // [100, 200, 300, ... ]
 
             Stopwatch stopwatch = Stopwatch.StartNew();
             stopwatch.Restart();
@@ -53,10 +53,13 @@ namespace CountingPrimes
             int result = CountAndSumPrimes(input);
 
             stopwatch.Stop();
-            Console.WriteLine($"Sequential completed in {stopwatch.ElapsedMilliseconds} ms with a result of {result}");
+            Console.WriteLine($"Completed in {stopwatch.ElapsedMilliseconds} ms with a result of {result}");
         }
 
+
         // Sequential
+#if true
+
         public static int CountAndSumPrimes(int[] input)
         {
             int output = 0;
@@ -69,170 +72,169 @@ namespace CountingPrimes
             return output;
         }
 
-
-        // Parallel for with sequential summing
-        // public static int CountAndSumPrimes(int[] input)
-        // {
-        //     int sum = 0;
-        //     int[] sums = new int[input.Length];
-
-        //     // Parallel computation
-        //     Parallel.For(0, input.Length, new ParallelOptions { MaxDegreeOfParallelism = numberOfProcessors }, (index) =>
-        //     {
-        //         int result = CountPrimes(input[index]);
-        //         sums[index] = result;
-        //     });
-
-        //     // Sequential summing
-        //     foreach (int i in sums)
-        //     {
-        //         sum += i;
-        //     }
-
-        //     return sum;
-        // }
+#endif
 
 
         // Parallel for with parallel summing
-        // public static int CountAndSumPrimes(int[] input)
-        // {
-        //     int sum = 0;
+#if false
 
-        //     // Parallel computation and summing
-        //     Parallel.For(0, input.Length, new ParallelOptions { MaxDegreeOfParallelism = numberOfProcessors }, (index) =>
-        //     {
-        //         int result = CountPrimes(input[index]);
-        //         Interlocked.Add(ref sum, result);
-        //     });
+        public static int CountAndSumPrimes(int[] input)
+        {
+            int sum = 0;
 
-        //     return sum;
-        // }
+            // Parallel computation and summing
+            Parallel.For(0, input.Length, new ParallelOptions { MaxDegreeOfParallelism = numberOfProcessors }, (index) =>
+            {
+                int result = CountPrimes(input[index]);
+                Interlocked.Add(ref sum, result);
+            });
+
+            return sum;
+        }
+
+#endif
 
 
         // PLINQ
-        // public static int CountAndSumPrimes(int[] input)
-        // {
-        //     return input.AsParallel()
-        //         .WithDegreeOfParallelism(numberOfProcessors)
-        //         .Select(x => CountPrimes(x))
-        //         .Aggregate((x, y) => x + y);
-        // }
+#if false
+
+        public static int CountAndSumPrimes(int[] input)
+        {
+            return input.AsParallel()
+                .WithDegreeOfParallelism(numberOfProcessors)
+                .Select(x => CountPrimes(x))
+                .Aggregate((x, y) => x + y);
+        }
+
+#endif
 
 
         // Chunked threads
-        // public static int CountAndSumPrimes(int[] input)
-        // {
-        //     int sum = 0;
-        //     List<Thread> threads = new List<Thread>();
-        //     int workPerProcess = input.Length / numberOfProcessors;
+#if false
 
-        //     for (int process = 0; process < numberOfProcessors; process++)
-        //     {
-        //         // Calculate start and end indexes
-        //         int start = process * workPerProcess;
-        //         int end = (process == numberOfProcessors - 1) ? input.Length : start + workPerProcess;
+        public static int CountAndSumPrimes(int[] input)
+        {
+            int sum = 0;
+            List<Thread> threads = new List<Thread>();
+            int workPerProcess = input.Length / numberOfProcessors;
 
-        //         // Assign work to the thread
-        //         threads.Add(new Thread(() =>
-        //         {
-        //             int localSum = 0;
+            for (int process = 0; process < numberOfProcessors; process++)
+            {
+                // Calculate start and end indexes
+                int start = process * workPerProcess;
+                int end = (process == numberOfProcessors - 1) ? input.Length : start + workPerProcess;
 
-        //             for (int index = start; index < end; index++)
-        //             {
-        //                 int result = CountPrimes(input[index]);
-        //                 localSum += result;
-        //             }
+                // Assign work to the thread
+                threads.Add(new Thread(() =>
+                {
+                    int localSum = 0;
 
-        //             Interlocked.Add(ref sum, localSum);
-        //         }));
-        //     }
+                    for (int index = start; index < end; index++)
+                    {
+                        int result = CountPrimes(input[index]);
+                        localSum += result;
+                    }
 
-        //     foreach (var thread in threads) thread.Start();
-        //     foreach (var thread in threads) thread.Join();
+                    Interlocked.Add(ref sum, localSum);
+                }));
+            }
 
-        //     return sum;
-        // }
+            foreach (var thread in threads) thread.Start();
+            foreach (var thread in threads) thread.Join();
+
+            return sum;
+        }
+
+#endif
 
 
         // Chunked thread pool
-        // public static int CountAndSumPrimes(int[] input)
-        // {
-        //     int workPerProcess = input.Length / numberOfProcessors;
-        //     // Keep track of the number of threads remaining to complete
-        //     int remaining = numberOfProcessors;
-        //     int sum = 0;
+#if false
 
-        //     using (ManualResetEvent mre = new ManualResetEvent(false))
-        //     {
-        //         for (int process = 0; process < numberOfProcessors; process++)
-        //         {
-        //             // Calculate start and end indexes
-        //             int start = process * workPerProcess;
-        //             int end = (process == numberOfProcessors - 1) ? input.Length : start + workPerProcess;
+        public static int CountAndSumPrimes(int[] input)
+        {
+            int workPerProcess = input.Length / numberOfProcessors;
+            // Keep track of the number of threads remaining to complete
+            int remaining = numberOfProcessors;
+            int sum = 0;
 
-        //             // Assign work to the pool
-        //             ThreadPool.QueueUserWorkItem(delegate
-        //             {
-        //                 int localSum = 0;
+            using (ManualResetEvent mre = new ManualResetEvent(false))
+            {
+                for (int process = 0; process < numberOfProcessors; process++)
+                {
+                    // Calculate start and end indexes
+                    int start = process * workPerProcess;
+                    int end = (process == numberOfProcessors - 1) ? input.Length : start + workPerProcess;
 
-        //                 for (int index = start; index < end; index++)
-        //                 {
-        //                     int result = CountPrimes(input[index]);
-        //                     localSum += result;
-        //                 }
+                    // Assign work to the pool
+                    ThreadPool.QueueUserWorkItem(delegate
+                    {
+                        int localSum = 0;
 
-        //                 Interlocked.Add(ref sum, localSum);
+                        for (int index = start; index < end; index++)
+                        {
+                            int result = CountPrimes(input[index]);
+                            localSum += result;
+                        }
 
-        //                 if (Interlocked.Decrement(ref remaining) == 0) mre.Set();
-        //             });
-        //         }
+                        Interlocked.Add(ref sum, localSum);
 
-        //         // Wait for all threads to complete
-        //         mre.WaitOne();
-        //     }
+                        if (Interlocked.Decrement(ref remaining) == 0) mre.Set();
+                    });
+                }
 
-        //     return sum;
-        // }
+                // Wait for all threads to complete
+                mre.WaitOne();
+            }
+
+            return sum;
+        }
+
+#endif
+
 
 
         // Chunked thread pool with dynamic partitioning 
-        // public static int CountAndSumPrimes(int[] input)
-        // {
-        //     int workPerProcess = input.Length / numberOfProcessors;
-        //     // Keep track of the number of threads remaining to complete
-        //     int remaining = numberOfProcessors;
-        //     int nextIteration = 0;
-        //     int sum = 0;
+#if false
 
-        //     using (ManualResetEvent mre = new ManualResetEvent(false))
-        //     {
-        //         // Create each of the work items.
-        //         for (int process = 0; process < numberOfProcessors; process++)
-        //         {
-        //             ThreadPool.QueueUserWorkItem(delegate
-        //             {
-        //                 int index;
-        //                 int localSum = 0;
-        //                 while ((index = Interlocked.Increment(ref nextIteration) - 1) < input.Length)
-        //                 {
-        //                     int result = CountPrimes(input[index]);
-        //                     localSum += result;
-        //                 }
+        public static int CountAndSumPrimes(int[] input)
+        {
+            int workPerProcess = input.Length / numberOfProcessors;
+            // Keep track of the number of threads remaining to complete
+            int remaining = numberOfProcessors;
+            int nextIteration = 0;
+            int sum = 0;
 
-        //                 Interlocked.Add(ref sum, localSum);
+            using (ManualResetEvent mre = new ManualResetEvent(false))
+            {
+                // Create each of the work items.
+                for (int process = 0; process < numberOfProcessors; process++)
+                {
+                    ThreadPool.QueueUserWorkItem(delegate
+                    {
+                        int index;
+                        int localSum = 0;
+                        while ((index = Interlocked.Increment(ref nextIteration) - 1) < input.Length)
+                        {
+                            int result = CountPrimes(input[index]);
+                            localSum += result;
+                        }
 
-        //                 if (Interlocked.Decrement(ref remaining) == 0)
-        //                     mre.Set();
-        //             });
-        //         }
+                        Interlocked.Add(ref sum, localSum);
 
-        //         // Wait for all threads to complete.
-        //         mre.WaitOne();
-        //     }
+                        if (Interlocked.Decrement(ref remaining) == 0)
+                            mre.Set();
+                    });
+                }
 
-        //     return sum;
-        // }
+                // Wait for all threads to complete.
+                mre.WaitOne();
+            }
 
+            return sum;
+        }
+
+#endif
 
     }
 }
