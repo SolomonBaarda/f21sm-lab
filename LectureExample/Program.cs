@@ -60,8 +60,6 @@ namespace LectureExampleProgram
         {
             int[] input = new int[150];
 
-            Random r = new Random(0);
-
             // Construct data
             for (int i = 0; i < input.Length; i++)
             {
@@ -77,12 +75,14 @@ namespace LectureExampleProgram
             long result = ExampleProgram(input);
 
             stopwatch.Stop();
-            Console.WriteLine($"Completed in {stopwatch.ElapsedMilliseconds} ms with a result of {result}");
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Completed in {String.Format("{0:F1}", stopwatch.ElapsedMilliseconds / 1000.0)} s with a result of {result}");
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
 
         // Sequential
-#if false
+#if true
 
         public static long ExampleProgram(int[] input)
         {
@@ -235,7 +235,7 @@ namespace LectureExampleProgram
             {
                 int numberOfIndexesPerProcess = input.Length / numberOfProcessors;
                 // Keep track of the number of threads still to complete
-                int remaining = numberOfProcessors;
+                int numberOfProcessesRemaining = numberOfProcessors;
 
                 // Calculate the sum of primes for the input
                 for (int process = 0; process < numberOfProcessors; process++)
@@ -257,7 +257,7 @@ namespace LectureExampleProgram
 
                         Interlocked.Add(ref sumOfPrimes, localSum);
 
-                        if (Interlocked.Decrement(ref remaining) == 0) mre.Set();
+                        if (Interlocked.Decrement(ref numberOfProcessesRemaining) == 0) mre.Set();
                     });
                 }
 
@@ -267,7 +267,7 @@ namespace LectureExampleProgram
 
                 // Reset thread pool information
                 mre.Reset();
-                remaining = numberOfProcessors;
+                numberOfProcessesRemaining = numberOfProcessors;
 
                 // Calculate the sum of fibonacci numbers for the input
                 for (int process = 0; process < numberOfProcessors; process++)
@@ -289,7 +289,7 @@ namespace LectureExampleProgram
 
                         Interlocked.Add(ref sumOfFibonacci, localSum);
 
-                        if (Interlocked.Decrement(ref remaining) == 0) mre.Set();
+                        if (Interlocked.Decrement(ref numberOfProcessesRemaining) == 0) mre.Set();
                     });
                 }
 
@@ -305,7 +305,7 @@ namespace LectureExampleProgram
 
 
         // Thread pool with dynamic partitioning 
-#if true
+#if false
 
         public static int ExampleProgram(int[] input)
         {
@@ -315,8 +315,8 @@ namespace LectureExampleProgram
             using (ManualResetEvent mre = new ManualResetEvent(false))
             {
                 // Keep track of the number of threads still to complete
-                int remaining = numberOfProcessors;
-                int nextIteration = 0;
+                int numberOfProcessesRemaining = numberOfProcessors;
+                int nextWorkIndex = 0;
 
                 // Calculate the sum of primes for the input
                 for (int process = 0; process < numberOfProcessors; process++)
@@ -325,7 +325,7 @@ namespace LectureExampleProgram
                     {
                         int index;
                         int localSum = 0;
-                        while ((index = Interlocked.Increment(ref nextIteration) - 1) < input.Length)
+                        while ((index = Interlocked.Increment(ref nextWorkIndex) - 1) < input.Length)
                         {
                             int result = CountPrimes(input[index]);
                             localSum += result;
@@ -333,7 +333,7 @@ namespace LectureExampleProgram
 
                         Interlocked.Add(ref sumOfPrimes, localSum);
 
-                        if (Interlocked.Decrement(ref remaining) == 0)
+                        if (Interlocked.Decrement(ref numberOfProcessesRemaining) == 0)
                             mre.Set();
                     });
                 }
@@ -344,8 +344,8 @@ namespace LectureExampleProgram
 
                 // Reset thread pool information
                 mre.Reset();
-                remaining = numberOfProcessors;
-                nextIteration = 0;
+                numberOfProcessesRemaining = numberOfProcessors;
+                nextWorkIndex = 0;
 
                 // Calculate the sum of fibonacci numbers for the input
                 for (int process = 0; process < numberOfProcessors; process++)
@@ -354,7 +354,7 @@ namespace LectureExampleProgram
                     {
                         int index;
                         int localSum = 0;
-                        while ((index = Interlocked.Increment(ref nextIteration) - 1) < input.Length)
+                        while ((index = Interlocked.Increment(ref nextWorkIndex) - 1) < input.Length)
                         {
                             int fibonacci = Fibonacci((int)Math.Sqrt(input[index]) * sumOfPrimes);
                             localSum += fibonacci;
@@ -362,7 +362,7 @@ namespace LectureExampleProgram
 
                         Interlocked.Add(ref sumOfFibonacci, localSum);
 
-                        if (Interlocked.Decrement(ref remaining) == 0)
+                        if (Interlocked.Decrement(ref numberOfProcessesRemaining) == 0)
                             mre.Set();
                     });
                 }
