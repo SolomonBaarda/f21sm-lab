@@ -22,6 +22,7 @@ namespace SobelEdgeDetector
             // Load image
             Console.WriteLine($"Attempting to load image from path {inputImagePath}");
             using Image<Rgba32> image = Image.Load<Rgba32>(inputImagePath);
+            Console.WriteLine($"Your machine has {Environment.ProcessorCount} logical processors");
             Console.WriteLine($"Running lab {task} with {numberOfThreads} threads...");
 
             // Create stopwatch
@@ -32,7 +33,7 @@ namespace SobelEdgeDetector
 
             // Calculate runtime
             watch.Stop();
-            Console.WriteLine($"Completed processing in {watch.ElapsedMilliseconds} milliseconds using {Environment.ProcessorCount} threads");
+            Console.WriteLine($"Completed processing in {watch.ElapsedMilliseconds} milliseconds using {numberOfThreads} threads");
             Console.WriteLine($"Writing output image to path {outputImagePath}");
 
             // Save result

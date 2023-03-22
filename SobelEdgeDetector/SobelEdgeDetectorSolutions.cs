@@ -1,7 +1,7 @@
 ﻿using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace SobelEdgeDetector
+namespace SobelEdgeDetectorSolutions
 {
     public static class SobelEdgeDetector
     {
@@ -90,7 +90,6 @@ namespace SobelEdgeDetector
             // Task 7
             // Output the original image with the edges on top
             // Optionally colour the edges
-            // Your code goes here:
 
             // Return the processed image
             return Image<Rgba32>.LoadPixelData(sobelMagnitude, image.Width, image.Height);
@@ -152,12 +151,20 @@ namespace SobelEdgeDetector
         {
             Rgba32[] outputPixelData = new Rgba32[width * height];
 
-            // Make sure to pass in: new ParallelOptions { MaxDegreeOfParallelism = numberOfThreads }
+            // Your code goes here:
+            // Pass in: new ParallelOptions { MaxDegreeOfParallelism = numberOfThreads }
             // As a parameter before the lambda function 
 
-            // Your code goes here:
+            //throw new NotImplementedException("Please complete task 2");
 
-            throw new NotImplementedException("Please complete task 2");
+            Parallel.For(0, height, new ParallelOptions { MaxDegreeOfParallelism = numberOfThreads }, y =>
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int index = (y * width) + x;
+                    outputPixelData[index] = ApplyKernelToPixel(pixelData, width, height, x, y, kernel);
+                }
+            });
 
             return outputPixelData;
         }
@@ -167,11 +174,23 @@ namespace SobelEdgeDetector
         {
             Rgba32[] outputPixelData = new Rgba32[width * height];
 
-            // You can use .WithDegreeOfParallelism(numberOfThreads) to set the max number of threads
 
             // Your code goes here:
 
-            throw new NotImplementedException("Please complete task 3");
+            // Use: WithDegreeOfParallelism(numberOfThreads) to set the max number of threads
+
+            //throw new NotImplementedException("Please complete task 3");
+
+            outputPixelData = pixelData.AsParallel()
+            .AsOrdered()
+            .WithDegreeOfParallelism(numberOfThreads)
+            .Select((element, index) =>
+            {
+                int x = index % width;
+                int y = index / width;
+                return ApplyKernelToPixel(pixelData, width, height, x, y, kernel);
+            })
+            .ToArray();
 
             return outputPixelData;
         }
@@ -193,13 +212,16 @@ namespace SobelEdgeDetector
                 // Assign work to the thread
                 threads.Add(new Thread(() =>
                 {
-                    // Calculate x and y indexes using:
-                    // int x = index % width; 
-                    // int y = index / width;
-
                     // Your code goes here:
+                    //throw new NotImplementedException("Please complete task 4");
 
-                    throw new NotImplementedException("Please complete task 4");
+                    for (int index = startIndex; index < endIndex; index++)
+                    {
+                        int x = index % width;
+                        int y = index / width;
+                        outputPixelData[index] = ApplyKernelToPixel(pixelData, width, height, x, y, kernel);
+                    }
+
                 }));
             }
 
@@ -229,13 +251,15 @@ namespace SobelEdgeDetector
                     // Assign work to the pool
                     ThreadPool.QueueUserWorkItem(delegate
                     {
-                        // Calculate x and y indexes using:
-                        // int x = index % width; 
-                        // int y = index / width;
-
                         // Your code goes here:
+                        //throw new NotImplementedException("Please complete task 5");
 
-                        throw new NotImplementedException("Please complete task 4");
+                        for (int index = startIndex; index < endIndex; index++)
+                        {
+                            int x = index % width;
+                            int y = index / width;
+                            outputPixelData[index] = ApplyKernelToPixel(pixelData, width, height, x, y, kernel);
+                        }
 
                         if (Interlocked.Decrement(ref remaining) == 0) mre.Set();
                     });
@@ -269,13 +293,11 @@ namespace SobelEdgeDetector
 
                         while ((index = Interlocked.Increment(ref nextIteration) - 1) < pixelData.Length)
                         {
-                            // Calculate x and y indexes using:
-                            // int x = index % width; 
-                            // int y = index / width;
-
                             // Your code goes here:
 
-                            throw new NotImplementedException("Please complete task 4");
+                            int x = index % width;
+                            int y = index / width;
+                            outputPixelData[index] = ApplyKernelToPixel(pixelData, width, height, x, y, kernel);
                         }
 
                         if (Interlocked.Decrement(ref remaining) == 0)
@@ -324,7 +346,6 @@ namespace SobelEdgeDetector
             // Rgba32 takes colour input in range 0-1
             return new Rgba32(sumR / 256.0f, sumG / 256.0f, sumB / 256.0f);
         }
-
 
     }
 }
