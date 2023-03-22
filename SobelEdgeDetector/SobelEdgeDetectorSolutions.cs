@@ -151,11 +151,7 @@ namespace SobelEdgeDetectorSolutions
         {
             Rgba32[] outputPixelData = new Rgba32[width * height];
 
-            // Your code goes here:
-            // Pass in: new ParallelOptions { MaxDegreeOfParallelism = numberOfThreads }
-            // As a parameter before the lambda function 
-
-            //throw new NotImplementedException("Please complete task 2");
+                    // Your code goes here:
 
             Parallel.For(0, height, new ParallelOptions { MaxDegreeOfParallelism = numberOfThreads }, y =>
             {
@@ -174,12 +170,7 @@ namespace SobelEdgeDetectorSolutions
         {
             Rgba32[] outputPixelData = new Rgba32[width * height];
 
-
             // Your code goes here:
-
-            // Use: WithDegreeOfParallelism(numberOfThreads) to set the max number of threads
-
-            //throw new NotImplementedException("Please complete task 3");
 
             outputPixelData = pixelData.AsParallel()
             .AsOrdered()
@@ -213,7 +204,6 @@ namespace SobelEdgeDetectorSolutions
                 threads.Add(new Thread(() =>
                 {
                     // Your code goes here:
-                    //throw new NotImplementedException("Please complete task 4");
 
                     for (int index = startIndex; index < endIndex; index++)
                     {
@@ -252,7 +242,6 @@ namespace SobelEdgeDetectorSolutions
                     ThreadPool.QueueUserWorkItem(delegate
                     {
                         // Your code goes here:
-                        //throw new NotImplementedException("Please complete task 5");
 
                         for (int index = startIndex; index < endIndex; index++)
                         {
