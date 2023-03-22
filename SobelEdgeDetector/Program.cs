@@ -13,6 +13,11 @@ namespace SobelEdgeDetector
                 throw new ArgumentException("Edge detector must be called with <task number> <input image path> <output image path> <number of threads>");
             }
 
+            if (!Enum.IsDefined(typeof(SobelEdgeDetector.LabTask), int.Parse(args[0])))
+            {
+                throw new ArgumentException("Please specify task values 1-6");
+            }
+
             // Parse parameters
             SobelEdgeDetector.LabTask task = (SobelEdgeDetector.LabTask)(int.Parse(args[0]));
             string inputImagePath = Path.GetFullPath(args[1]);
@@ -33,7 +38,9 @@ namespace SobelEdgeDetector
 
             // Calculate runtime
             watch.Stop();
+            Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine($"Completed processing in {watch.ElapsedMilliseconds} milliseconds using {numberOfThreads} threads");
+            Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine($"Writing output image to path {outputImagePath}");
 
             // Save result

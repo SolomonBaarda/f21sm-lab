@@ -44,7 +44,6 @@ namespace SobelEdgeDetector
             Task6 = 6
         }
 
-
         /// <summary>
         /// The main image processing function which performs the Sobel edge detection
         /// </summary>
@@ -127,9 +126,6 @@ namespace SobelEdgeDetector
             }
         }
 
-        // Lab tasks
-        // Your code goes here:
-
         // Sequential implementation
         private static Rgba32[] Task1(Rgba32[] pixelData, int width, int height, float[,] kernel, int numberOfThreads)
         {
@@ -146,6 +142,9 @@ namespace SobelEdgeDetector
 
             return outputPixelData;
         }
+
+        // Lab tasks
+        // Your code goes here:
 
         // Parallel for implementation
         private static Rgba32[] Task2(Rgba32[] pixelData, int width, int height, float[,] kernel, int numberOfThreads)
@@ -235,7 +234,7 @@ namespace SobelEdgeDetector
 
                         // Your code goes here:
 
-                        throw new NotImplementedException("Please complete task 4");
+                        throw new NotImplementedException("Please complete task 5");
 
                         if (Interlocked.Decrement(ref remaining) == 0) mre.Set();
                     });
@@ -260,7 +259,7 @@ namespace SobelEdgeDetector
 
             using (ManualResetEvent mre = new ManualResetEvent(false))
             {
-                // Create each of the work items.
+                // Create each of the work items
                 for (int process = 0; process < numberOfThreads; process++)
                 {
                     ThreadPool.QueueUserWorkItem(delegate
@@ -275,7 +274,7 @@ namespace SobelEdgeDetector
 
                             // Your code goes here:
 
-                            throw new NotImplementedException("Please complete task 4");
+                            throw new NotImplementedException("Please complete task 6");
                         }
 
                         if (Interlocked.Decrement(ref remaining) == 0)

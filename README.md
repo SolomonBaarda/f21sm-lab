@@ -4,18 +4,18 @@
 # Installation instructions
 
 There are two ways to install C# to run the project:
-* Download the dotnet development runtime 
+* Download the dotnet development runtime (recommended)
 * Download the Docker development environment which contains the dotnet runtime
 
 You will also need an IDE installed, I recommend [VSCode](https://code.visualstudio.com/download).
 
-## Option 1: Manual installation
+## Option 1: Manual installation (recommended)
 
 1. Download and install **version 7** of the [dotnet SDK](https://dotnet.microsoft.com/en-us/download)
    
    If you want to install the dotnet SDK using a package manager, make sure to install the `dotnet-sdk` version seven
 
-2. Clone this repository to disk using `git clone https://github.com/SolomonBaarda/f21sm-lab.git`
+2. Clone this repository to disk using `git clone https://github.com/SolomonBaarda/f21sm-lab.git` or download it as a zip
 3. Open the `f21sm-lab` folder in your IDE of choice
     
     If you are using VSCode, select the *Extensions* tab on the left, search for C#, and install the Microsoft C# extension
@@ -29,7 +29,7 @@ You will also need an IDE installed, I recommend [VSCode](https://code.visualstu
 
 ## Option 2: Docker installation
 
-I have provided installation instructions for Docker, if you wish to use it. THIS IS OPTIONAL
+I have provided installation instructions for Docker, if you wish to use it. **THIS IS OPTIONAL**
 
 1. Install [Docker Desktop](https://docs.docker.com/get-docker/) (**or any other version of Docker if you know how to use it**)
 
