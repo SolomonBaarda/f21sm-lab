@@ -82,7 +82,7 @@ namespace LectureExampleProgram
 
 
         // Sequential
-#if true
+#if false
 
         public static long ExampleProgram(int[] input)
         {
@@ -116,7 +116,6 @@ namespace LectureExampleProgram
             Parallel.For(0, input.Length, new ParallelOptions { MaxDegreeOfParallelism = numberOfProcessors }, (index) =>
             {
                 int numberOfPrimes = CountPrimes(input[index]);
-
                 Interlocked.Add(ref sumOfPrimes, numberOfPrimes);
             });
 
@@ -125,7 +124,6 @@ namespace LectureExampleProgram
             Parallel.For(0, input.Length, new ParallelOptions { MaxDegreeOfParallelism = numberOfProcessors }, (index) =>
             {
                 int fibonacci = Fibonacci((int)Math.Sqrt(input[index]) * sumOfPrimes);
-
                 Interlocked.Add(ref sumOfFibonacci, fibonacci);
             });
 
@@ -159,11 +157,13 @@ namespace LectureExampleProgram
 
         public static int ExampleProgram(int[] input)
         {
-            // Calculate the sum of primes for the input
-            int sumOfPrimes = 0;
             List<Thread> threads = new List<Thread>();
             int numberOfIndexesPerProcess = input.Length / numberOfProcessors;
 
+            int sumOfPrimes = 0;
+            int sumOfFibonacci = 0;
+
+            // Calculate the sum of primes for the input
             for (int process = 0; process < numberOfProcessors; process++)
             {
                 // Calculate start and end indexes
@@ -185,13 +185,13 @@ namespace LectureExampleProgram
                 }));
             }
 
+            // Wait for all threads to complete
             foreach (var thread in threads) thread.Start();
             foreach (var thread in threads) thread.Join();
             threads.Clear();
 
-            // Calculate the sum of fibonacci numbers for the input
-            int sumOfFibonacci = 0;
 
+            // Calculate the sum of fibonacci numbers for the input
             for (int process = 0; process < numberOfProcessors; process++)
             {
                 // Calculate start and end indexes
@@ -213,6 +213,7 @@ namespace LectureExampleProgram
                 }));
             }
 
+            // Wait for all threads to complete
             foreach (var thread in threads) thread.Start();
             foreach (var thread in threads) thread.Join();
 
@@ -227,14 +228,16 @@ namespace LectureExampleProgram
 
         public static int ExampleProgram(int[] input)
         {
-            int numberOfIndexesPerProcess = input.Length / numberOfProcessors;
-            // Keep track of the number of threads remaining to complete
-            int remaining = numberOfProcessors;
             int sumOfPrimes = 0;
             int sumOfFibonacci = 0;
 
             using (ManualResetEvent mre = new ManualResetEvent(false))
             {
+                int numberOfIndexesPerProcess = input.Length / numberOfProcessors;
+                // Keep track of the number of threads still to complete
+                int remaining = numberOfProcessors;
+
+                // Calculate the sum of primes for the input
                 for (int process = 0; process < numberOfProcessors; process++)
                 {
                     // Calculate start and end indexes
@@ -261,10 +264,12 @@ namespace LectureExampleProgram
                 // Wait for all threads to complete
                 mre.WaitOne();
 
-                // Calculate the sum of fibonacci numbers for the input
+
+                // Reset thread pool information
                 mre.Reset();
                 remaining = numberOfProcessors;
 
+                // Calculate the sum of fibonacci numbers for the input
                 for (int process = 0; process < numberOfProcessors; process++)
                 {
                     // Calculate start and end indexes
@@ -299,20 +304,21 @@ namespace LectureExampleProgram
 
 
 
-        // Chunked thread pool with dynamic partitioning 
-#if false
+        // Thread pool with dynamic partitioning 
+#if true
 
         public static int ExampleProgram(int[] input)
         {
-            // Keep track of the number of threads remaining to complete
-            int remaining = numberOfProcessors;
-            int nextIteration = 0;
             int sumOfPrimes = 0;
             int sumOfFibonacci = 0;
 
             using (ManualResetEvent mre = new ManualResetEvent(false))
             {
-                // Create each of the work items
+                // Keep track of the number of threads still to complete
+                int remaining = numberOfProcessors;
+                int nextIteration = 0;
+
+                // Calculate the sum of primes for the input
                 for (int process = 0; process < numberOfProcessors; process++)
                 {
                     ThreadPool.QueueUserWorkItem(delegate
@@ -335,11 +341,13 @@ namespace LectureExampleProgram
                 // Wait for all threads to complete
                 mre.WaitOne();
 
+
+                // Reset thread pool information
                 mre.Reset();
                 remaining = numberOfProcessors;
                 nextIteration = 0;
 
-                // Create each of the work items
+                // Calculate the sum of fibonacci numbers for the input
                 for (int process = 0; process < numberOfProcessors; process++)
                 {
                     ThreadPool.QueueUserWorkItem(delegate
