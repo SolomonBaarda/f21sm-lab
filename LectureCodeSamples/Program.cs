@@ -1,9 +1,12 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace CountingPrimes
+namespace LectureCodeSamples
 {
-    class Map
+    class LectureCodeSamplesMain
     {
         public static T[] MapSequential<T>(T[] input, Func<T, T> function)
         {

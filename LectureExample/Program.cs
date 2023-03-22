@@ -1,20 +1,19 @@
 ﻿using System.Diagnostics;
 
-namespace CountingPrimes
+namespace LectureExampleProgram
 {
-    class CountPrimesMain
+    class LectureExampleProgramMain
     {
-
         static int numberOfProcessors => Environment.ProcessorCount;
 
-        public static int CountPrimes(int n)
+        private static int CountPrimes(int n)
         {
             if (n <= 2)
             {
                 return 0;
             }
 
-            int count = 1;
+            int numberOfPrimes = 1;
 
             for (int i = 3; i < n; i++)
             {
@@ -24,12 +23,37 @@ namespace CountingPrimes
 
                     if (j == i - 1 && i % j != 0)
                     {
-                        count++;
+                        numberOfPrimes++;
                     }
                 }
             }
 
-            return count;
+            return numberOfPrimes;
+        }
+
+        private static int Fibonacci(int n)
+        {
+            if (n == 0)
+            {
+                return 0;
+            }
+            else if (n == 1)
+            {
+                return 1;
+            }
+
+            int fibNMinusTwo = 0;
+            int fibNMinusOne = 1;
+            int fibN = 0;
+
+            for (int i = 2; i <= n; i++)
+            {
+                fibN = fibNMinusOne + fibNMinusTwo;
+                fibNMinusTwo = fibNMinusOne;
+                fibNMinusOne = fibN;
+            }
+
+            return fibN;
         }
 
         static void Main(string[] args)
@@ -50,7 +74,7 @@ namespace CountingPrimes
             Stopwatch stopwatch = Stopwatch.StartNew();
             stopwatch.Restart();
 
-            int result = CountAndSumPrimes(input);
+            long result = ExampleProgram(input);
 
             stopwatch.Stop();
             Console.WriteLine($"Completed in {stopwatch.ElapsedMilliseconds} ms with a result of {result}");
@@ -60,36 +84,52 @@ namespace CountingPrimes
         // Sequential
 #if true
 
-        public static int CountAndSumPrimes(int[] input)
+        public static long ExampleProgram(int[] input)
         {
-            int output = 0;
-
-            for (int i = 0; i < input.Length; i++)
+            // Calculate the sum of primes for the input
+            int sumOfPrimes = 0;
+            for (int index = 0; index < input.Length; index++)
             {
-                output += CountPrimes(input[i]);
+                sumOfPrimes += CountPrimes(input[index]);
             }
 
-            return output;
+            // Calculate the sum of fibonacci numbers for the input
+            int sumOfFibonacci = 0;
+            for (int index = 0; index < input.Length; index++)
+            {
+                sumOfFibonacci += Fibonacci((int)Math.Sqrt(input[index]) * sumOfPrimes);
+            }
+
+            return sumOfFibonacci;
         }
 
 #endif
 
 
-        // Parallel for with parallel summing
+        // Parallel for
 #if false
 
-        public static int CountAndSumPrimes(int[] input)
+        public static int ExampleProgram(int[] input)
         {
-            int sum = 0;
-
-            // Parallel computation and summing
+            // Calculate the sum of primes for the input
+            int sumOfPrimes = 0;
             Parallel.For(0, input.Length, new ParallelOptions { MaxDegreeOfParallelism = numberOfProcessors }, (index) =>
             {
-                int result = CountPrimes(input[index]);
-                Interlocked.Add(ref sum, result);
+                int numberOfPrimes = CountPrimes(input[index]);
+
+                Interlocked.Add(ref sumOfPrimes, numberOfPrimes);
             });
 
-            return sum;
+            // Calculate the sum of fibonacci numbers for the input
+            int sumOfFibonacci = 0;
+            Parallel.For(0, input.Length, new ParallelOptions { MaxDegreeOfParallelism = numberOfProcessors }, (index) =>
+            {
+                int fibonacci = Fibonacci((int)Math.Sqrt(input[index]) * sumOfPrimes);
+
+                Interlocked.Add(ref sumOfFibonacci, fibonacci);
+            });
+
+            return sumOfFibonacci;
         }
 
 #endif
@@ -98,11 +138,16 @@ namespace CountingPrimes
         // PLINQ
 #if false
 
-        public static int CountAndSumPrimes(int[] input)
+        public static int ExampleProgram(int[] input)
         {
-            return input.AsParallel()
+            int sumOfPrimes = input.AsParallel()
                 .WithDegreeOfParallelism(numberOfProcessors)
                 .Select(x => CountPrimes(x))
+                .Aggregate((x, y) => x + y);
+
+            return input.AsParallel()
+                .WithDegreeOfParallelism(numberOfProcessors)
+                .Select(x => Fibonacci((int)Math.Sqrt(x) * sumOfPrimes))
                 .Aggregate((x, y) => x + y);
         }
 
@@ -112,17 +157,18 @@ namespace CountingPrimes
         // Chunked threads
 #if false
 
-        public static int CountAndSumPrimes(int[] input)
+        public static int ExampleProgram(int[] input)
         {
-            int sum = 0;
+            // Calculate the sum of primes for the input
+            int sumOfPrimes = 0;
             List<Thread> threads = new List<Thread>();
-            int workPerProcess = input.Length / numberOfProcessors;
+            int numberOfIndexesPerProcess = input.Length / numberOfProcessors;
 
             for (int process = 0; process < numberOfProcessors; process++)
             {
                 // Calculate start and end indexes
-                int start = process * workPerProcess;
-                int end = (process == numberOfProcessors - 1) ? input.Length : start + workPerProcess;
+                int start = process * numberOfIndexesPerProcess;
+                int end = (process == numberOfProcessors - 1) ? input.Length : start + numberOfIndexesPerProcess;
 
                 // Assign work to the thread
                 threads.Add(new Thread(() =>
@@ -135,14 +181,42 @@ namespace CountingPrimes
                         localSum += result;
                     }
 
-                    Interlocked.Add(ref sum, localSum);
+                    Interlocked.Add(ref sumOfPrimes, localSum);
+                }));
+            }
+
+            foreach (var thread in threads) thread.Start();
+            foreach (var thread in threads) thread.Join();
+            threads.Clear();
+
+            // Calculate the sum of fibonacci numbers for the input
+            int sumOfFibonacci = 0;
+
+            for (int process = 0; process < numberOfProcessors; process++)
+            {
+                // Calculate start and end indexes
+                int start = process * numberOfIndexesPerProcess;
+                int end = (process == numberOfProcessors - 1) ? input.Length : start + numberOfIndexesPerProcess;
+
+                // Assign work to the thread
+                threads.Add(new Thread(() =>
+                {
+                    int localSum = 0;
+
+                    for (int index = start; index < end; index++)
+                    {
+                        int fibonacci = Fibonacci((int)Math.Sqrt(input[index]) * sumOfPrimes);
+                        localSum += fibonacci;
+                    }
+
+                    Interlocked.Add(ref sumOfFibonacci, localSum);
                 }));
             }
 
             foreach (var thread in threads) thread.Start();
             foreach (var thread in threads) thread.Join();
 
-            return sum;
+            return sumOfFibonacci;
         }
 
 #endif
@@ -151,20 +225,21 @@ namespace CountingPrimes
         // Chunked thread pool
 #if false
 
-        public static int CountAndSumPrimes(int[] input)
+        public static int ExampleProgram(int[] input)
         {
-            int workPerProcess = input.Length / numberOfProcessors;
+            int numberOfIndexesPerProcess = input.Length / numberOfProcessors;
             // Keep track of the number of threads remaining to complete
             int remaining = numberOfProcessors;
-            int sum = 0;
+            int sumOfPrimes = 0;
+            int sumOfFibonacci = 0;
 
             using (ManualResetEvent mre = new ManualResetEvent(false))
             {
                 for (int process = 0; process < numberOfProcessors; process++)
                 {
                     // Calculate start and end indexes
-                    int start = process * workPerProcess;
-                    int end = (process == numberOfProcessors - 1) ? input.Length : start + workPerProcess;
+                    int start = process * numberOfIndexesPerProcess;
+                    int end = (process == numberOfProcessors - 1) ? input.Length : start + numberOfIndexesPerProcess;
 
                     // Assign work to the pool
                     ThreadPool.QueueUserWorkItem(delegate
@@ -177,7 +252,37 @@ namespace CountingPrimes
                             localSum += result;
                         }
 
-                        Interlocked.Add(ref sum, localSum);
+                        Interlocked.Add(ref sumOfPrimes, localSum);
+
+                        if (Interlocked.Decrement(ref remaining) == 0) mre.Set();
+                    });
+                }
+
+                // Wait for all threads to complete
+                mre.WaitOne();
+
+                // Calculate the sum of fibonacci numbers for the input
+                mre.Reset();
+                remaining = numberOfProcessors;
+
+                for (int process = 0; process < numberOfProcessors; process++)
+                {
+                    // Calculate start and end indexes
+                    int start = process * numberOfIndexesPerProcess;
+                    int end = (process == numberOfProcessors - 1) ? input.Length : start + numberOfIndexesPerProcess;
+
+                    // Assign work to the pool
+                    ThreadPool.QueueUserWorkItem(delegate
+                    {
+                        int localSum = 0;
+
+                        for (int index = start; index < end; index++)
+                        {
+                            int fibonacci = Fibonacci((int)Math.Sqrt(input[index]) * sumOfPrimes);
+                            localSum += fibonacci;
+                        }
+
+                        Interlocked.Add(ref sumOfFibonacci, localSum);
 
                         if (Interlocked.Decrement(ref remaining) == 0) mre.Set();
                     });
@@ -187,7 +292,7 @@ namespace CountingPrimes
                 mre.WaitOne();
             }
 
-            return sum;
+            return sumOfFibonacci;
         }
 
 #endif
@@ -197,17 +302,17 @@ namespace CountingPrimes
         // Chunked thread pool with dynamic partitioning 
 #if false
 
-        public static int CountAndSumPrimes(int[] input)
+        public static int ExampleProgram(int[] input)
         {
-            int workPerProcess = input.Length / numberOfProcessors;
             // Keep track of the number of threads remaining to complete
             int remaining = numberOfProcessors;
             int nextIteration = 0;
-            int sum = 0;
+            int sumOfPrimes = 0;
+            int sumOfFibonacci = 0;
 
             using (ManualResetEvent mre = new ManualResetEvent(false))
             {
-                // Create each of the work items.
+                // Create each of the work items
                 for (int process = 0; process < numberOfProcessors; process++)
                 {
                     ThreadPool.QueueUserWorkItem(delegate
@@ -220,18 +325,45 @@ namespace CountingPrimes
                             localSum += result;
                         }
 
-                        Interlocked.Add(ref sum, localSum);
+                        Interlocked.Add(ref sumOfPrimes, localSum);
 
                         if (Interlocked.Decrement(ref remaining) == 0)
                             mre.Set();
                     });
                 }
 
-                // Wait for all threads to complete.
+                // Wait for all threads to complete
+                mre.WaitOne();
+
+                mre.Reset();
+                remaining = numberOfProcessors;
+                nextIteration = 0;
+
+                // Create each of the work items
+                for (int process = 0; process < numberOfProcessors; process++)
+                {
+                    ThreadPool.QueueUserWorkItem(delegate
+                    {
+                        int index;
+                        int localSum = 0;
+                        while ((index = Interlocked.Increment(ref nextIteration) - 1) < input.Length)
+                        {
+                            int fibonacci = Fibonacci((int)Math.Sqrt(input[index]) * sumOfPrimes);
+                            localSum += fibonacci;
+                        }
+
+                        Interlocked.Add(ref sumOfFibonacci, localSum);
+
+                        if (Interlocked.Decrement(ref remaining) == 0)
+                            mre.Set();
+                    });
+                }
+
+                // Wait for all threads to complete
                 mre.WaitOne();
             }
 
-            return sum;
+            return sumOfFibonacci;
         }
 
 #endif
